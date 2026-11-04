@@ -1,0 +1,17 @@
+/* Instellingen van de proefversie. Pas enkel de waarden tussen de aanhalingstekens aan. */
+window.NLH_BBS_CFG = {
+  // Web-app-URL van het Google Apps Script (eindigt op /exec)
+  submitUrl: 'https://script.google.com/macros/s/AKfycbyGygYGqNW_IOW2qmFZRnRB3N5l6ICqwyW5-XM4AXWjbem25x40dKrtTsI85VKU9wtTlg/exec',
+  // Naam die klanten zien, bv. in "Wouter bekijkt je resultaten"
+  coachName: 'Wouter',
+  // Link naar je privacyverklaring (leeg laten = geen link)
+  privacyUrl: '',
+  // Knop "Terug naar de website" op het bedankscherm (leeg laten = geen knop)
+  homeUrl: 'https://nextlevelhealth.me',
+
+  // niet aanpassen
+  trial: true,
+  submitType: 'text/plain;charset=utf-8',
+  draftKey: 'nlh-bbs-trial-draft',
+  profileKey: 'nlh-bbs-trial-profile'
+};

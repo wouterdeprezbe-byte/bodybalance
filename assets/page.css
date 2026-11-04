@@ -1,0 +1,46 @@
+/* Aanvulling voor de WordPress-pagina's: welkom, verzenden, bedankt en het coachoverzicht. */
+html { -webkit-text-size-adjust: 100%; }
+body { margin: 0; min-height: 100vh; }
+a { color: var(--ink); text-underline-offset: 3px; }
+a.btn { display: inline-flex; align-items: center; text-decoration: none; }
+a.nav-btn { text-decoration: none; display: inline-flex; align-items: center; }
+.intake-start { max-width: 40rem; }
+.check { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 12px; align-items: start; font-size: 0.92rem; line-height: 1.45; cursor: pointer; }
+.check input { width: 22px; height: 22px; margin: 1px 0 0; accent-color: var(--ink); }
+.hp { position: absolute !important; left: -10000px; width: 1px; height: 1px; overflow: hidden; }
+.status-card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: clamp(22px, 5vw, 40px); display: flex; flex-direction: column; gap: 16px; max-width: 40rem; }
+.status-card.done { border-top: 6px solid var(--t4); }
+.status-card h1 { font-size: clamp(2rem, 6vw, 2.8rem); }
+.status-card .fallback { border-top: 1px solid var(--line); padding-top: 16px; display: flex; flex-direction: column; gap: 10px; }
+.spinner { width: 36px; height: 36px; border-radius: 50%; border: 4px solid var(--line); border-top-color: var(--ochre); animation: nlh-spin 0.9s linear infinite; }
+@keyframes nlh-spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .spinner { animation-duration: 2.4s; } }
+
+/* coach */
+.share { display: flex; flex-direction: column; gap: 12px; }
+.share .codebox code { user-select: all; }
+.coach-tools { display: flex; gap: 12px; align-items: flex-end; flex-wrap: wrap; }
+.coach-tools .search { flex: 1 1 280px; max-width: 28rem; }
+.client-card.has-new { border-color: var(--ochre); box-shadow: inset 4px 0 0 var(--ochre); }
+.cc-name small { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.new-tag { font: 600 0.68rem/1 var(--f-mono); font-style: normal; letter-spacing: 0.06em; text-transform: uppercase; background: var(--ochre); color: #16293A; border-radius: 999px; padding: 3px 7px; vertical-align: middle; margin-left: 6px; }
+.fold { padding: 0; }
+.fold > summary { cursor: pointer; padding: 16px 18px; font-weight: 600; list-style-position: inside; }
+.fold > form { padding: 0 18px 18px; max-width: 40rem; }
+.im-row { align-items: flex-start; }
+.ok-note { background: var(--ok-soft); border-left-color: var(--ok); }
+.report-nav { justify-content: flex-start; gap: 24px; }
+.nlh-bbs-coach .clients { grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); }
+.nlh-bbs-coach .client-card { grid-template-columns: minmax(0, 1fr) auto; align-items: start; }
+.nlh-bbs-coach .cc-score .spark { margin-top: 2px; }
+.brand b { white-space: nowrap; }
+@media (max-width: 520px) {
+  .nav-extra { display: none !important; }
+  .nlh-bbs-coach .clients { grid-template-columns: 1fr; }
+  .share .codebox code { font-size: 0.78rem; }
+}
+.wrap { flex-wrap: wrap; }
+@media print {
+  .topbar, .report-nav, .code-block, .fold { display: none !important; }
+  body { background: #fff; }
+}
