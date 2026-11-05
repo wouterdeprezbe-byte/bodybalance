@@ -7,7 +7,7 @@ window.NLH_BBS_CFG = {
   // Link naar je privacyverklaring (leeg laten = geen link)
   privacyUrl: '',
   // Knop op het bedankscherm (leeg laten = geen knop)
-  homeUrl: 'https://mynextlevelhealth.me',
+  homeUrl: 'https://nextlevelhealth.me',
   homeLabel: 'Naar mijn MyNextLevelHealth account',
   // Adres voor het doorsturen van labo-verslagen (staat op het bedankscherm)
   contactEmail: 'wouter@nextlevelhealth.be',
