@@ -35,12 +35,12 @@ var BBSIntake = (function () {
     function render() {
       var P = pages(), pg = P[S.page];
       var h = '<div class="quiz-head"><div class="qh-inner">';
-      h += '<p class="eyebrow">Body Balance Score · vragenlijst</p>';
+      h += '<p class="eyebrow">' + esc(opts.eyebrow || 'Body Balance Score · vragenlijst') + '</p>';
       h += '<h2>' + esc(pg.t) + '</h2>';
       h += '<div class="progress" role="progressbar" aria-label="Voortgang" aria-valuemin="1" aria-valuemax="' + P.length + '" aria-valuenow="' + (S.page + 1) + '"><span style="width:' + (100 * (S.page + 1) / P.length).toFixed(1) + '%"></span></div>';
       h += '<p class="qh-sub num">Stap ' + (S.page + 1) + ' van ' + P.length + '</p>';
       h += '</div></div>';
-      if (S.page === 0) h += '<p class="instr">Duid aan hoe sterk of hoe vaak je elk signaal <b>de voorbije maand</b> had. Speelt het niet, kies dan <b>Niet</b> of <b>Nooit</b>. Bij twijfel kies je de lichtere optie.</p>';
+      if (S.page === 0) h += '<p class="instr">Duid aan hoe sterk of hoe vaak je het betreffende ‘symptoom’ <b>in de afgelopen maand</b> hebt ervaren. Kies de best passende optie. Indien niet van toepassing bij jou: kies gewoon <b>Niet</b> of <b>Nooit</b>.</p>';
       h += '<form class="qlist" novalidate>';
       if (pg.last) {
         h += textField('n-meds', 'meds', 'Welke medicatie neem je?', 'Vermeld ook de pil of andere hormonen, schildkliermedicatie en maagzuurremmers. Supplementen mag je ook noteren.', 3, 1500);
@@ -49,8 +49,7 @@ var BBSIntake = (function () {
           h += '<li><label class="sr" for="n-' + k + '">Klacht ' + (i + 1) + '</label><input type="text" id="n-' + k + '" data-note="' + k + '" maxlength="200" value="' + esc(S.notes[k] || '') + '"></li>';
         });
         h += '</ol></div>';
-        h += textField('n-remarks', 'remarks', 'Wil je nog iets kwijt?', 'Klachten die niet in de lijst stonden, wat je al geprobeerd hebt, of iets anders dat je coach moet weten.', 5, 2000);
-        if (opts.feedback) h += textField('n-feedback', 'feedback', 'Hoe vond je deze vragenlijst?', 'Dit is een proefversie. Was een vraag onduidelijk, ontbrak er iets of duurde het te lang? Laat het gerust weten.', 3, 1500);
+        h += textField('n-remarks', 'remarks', 'Wil je nog iets kwijt?', 'Klachten die niet in de lijst stonden, wat je al geprobeerd hebt, of iets anders dat ik moet weten.', 5, 2000);
       }
       pg.q.forEach(function (Q) {
         var v = S.a[Q.id], o = U.optsOf(Q);
@@ -67,7 +66,6 @@ var BBSIntake = (function () {
       });
       h += '</form>';
       h += '<div class="quiz-foot">';
-      h += '<button type="button" class="link fill-btn" data-i="fill-none"' + (pageOpen(pg) ? '' : ' hidden') + '>Zet de overige vragen op deze pagina op ‘Niet’, ‘Nooit’ of ‘Nee’</button>';
       if (S.notice) h += '<div class="notice" role="alert">' + S.notice + '</div>';
       h += '<div class="row nav-row">';
       h += '<button type="button" class="btn ghost" data-i="prev">' + (S.page === 0 ? 'Terug' : 'Vorige') + '</button>';
@@ -91,7 +89,6 @@ var BBSIntake = (function () {
       var v = +el.value; S.a[el.dataset.q] = v;
       var fs = el.closest('fieldset'); if (fs) fs.classList.add('done');
       var fl = fs && fs.querySelector('.follow'); if (fl) { fl.hidden = v !== 1; if (v === 1) { var ta = fl.querySelector('textarea'); if (ta) ta.focus(); } }
-      var fb = root.querySelector('[data-i="fill-none"]'); if (fb) fb.hidden = !pageOpen(pages()[S.page]);
       save();
     });
     root.addEventListener('input', function (e) {
@@ -104,10 +101,6 @@ var BBSIntake = (function () {
       var a = b.dataset.i;
       if (a === 'next') go(S.page + 1);
       else if (a === 'prev') { if (S.page === 0) { if (opts.onBack) opts.onBack(); } else go(S.page - 1); }
-      else if (a === 'fill-none') {
-        pages()[S.page].q.forEach(function (Q) { if (S.a[Q.id] == null) S.a[Q.id] = Q.n || 0; });
-        var y = window.scrollY; render(); window.scrollTo(0, y); save();
-      }
       else if (a === 'finish') finish(false);
       else if (a === 'finish-force') finish(true);
       else if (a === 'goto-open') { var p = firstOpen(); if (p >= 0) { go(p); var q = root.querySelector('fieldset.q:not(.done)'); if (q) q.scrollIntoView({ block: 'center' }); } }
