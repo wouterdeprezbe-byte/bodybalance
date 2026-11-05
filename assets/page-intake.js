@@ -21,6 +21,7 @@
   function Coach() { var c = coach(); return c.charAt(0).toUpperCase() + c.slice(1); }
   function show(v) { S.view = v; render(); U.focusTop(main); }
   function render() {
+    document.body.classList.toggle('on-welcome', S.view === 'welcome');
     if (S.view === 'quiz') return intake.render();
     main.innerHTML = S.view === 'welcome' ? viewWelcome() : S.view === 'sending' ? viewSending() : S.view === 'thanks' ? viewThanks() : viewError();
   }
@@ -28,7 +29,8 @@
   function viewWelcome() {
     var d = intake.draft(), p = U.LS.get(CFG.profileKey || 'nlh-bbs-profile') || {}, user = CFG.user || null;
     var name = user ? user.name : (p.name || ''), email = user ? user.email : (p.email || '');
-    var h = '<section class="hero"><p class="eyebrow">The Next Level Health Project</p><h1>Body Balance-vragenlijst</h1>';
+    var h = CFG.logoOnDark ? '<section class="brand-hero"><img class="hero-logo" src="' + esc(CFG.logoOnDark) + '" alt="The Next Level Health Project" width="508" height="243"><div class="hero-rule" aria-hidden="true"></div><h1>Body Balance <em>Intake</em></h1>'
+      : '<section class="hero"><p class="eyebrow">The Next Level Health Project</p><h1>Body Balance-vragenlijst</h1>';
     h += '<div class="lede intro"><p>Bedankt om deze vragenlijst in te vullen. Geen enkele vraag is verplicht, maar hoe vollediger en nauwkeuriger je antwoordt, hoe duidelijker het beeld dat ik van je krijg. Nadien ontvang je een gedetailleerde Body Balance Score en kan je je evolutie desgewenst opvolgen via het online ondersteuningsplatform.</p>' +
       '<p>De vragenlijst duurt ongeveer 10 minuten. Leg, indien mogelijk, vooraf klaar:</p><ul>' +
       '<li>je laatste bloedlabo;</li>' +
@@ -52,7 +54,7 @@
     return '<section class="status-card" aria-live="polite"><div class="spinner" aria-hidden="true"></div><h2>Je antwoorden worden verstuurd…</h2><p class="small">Even geduld, sluit dit venster nog niet.</p></section>';
   }
   function viewThanks() {
-    var h = '<section class="status-card done"><p class="eyebrow">Body Balance-vragenlijst</p><h1>Bedankt' + (S.firstName ? ', ' + esc(S.firstName) : '') + '!</h1>';
+    var h = '<section class="status-card done"><p class="eyebrow">' + esc(CFG.eyebrow || 'Body Balance-vragenlijst') + '</p><h1>Bedankt' + (S.firstName ? ', ' + esc(S.firstName) : '') + '!</h1>';
     h += '<div class="lede thanks"><p>Je antwoorden zijn goed ontvangen en je krijgt spoedig feedback. Door de drukte kan dat tot 14 dagen duren, of op het vaste moment dat we al hebben afgesproken.</p>';
     if (CFG.contactEmail) h += '<p>Heb je ze nog niet bezorgd? Stuur dan, indien mogelijk, je laatste drie bloedlaboverslagen en eventuele andere labo-onderzoeken naar <a href="mailto:' + esc(CFG.contactEmail) + '">' + esc(CFG.contactEmail) + '</a>.</p>';
     h += '<p>Alle gegevens die je bezorgt, worden uiteraard strikt vertrouwelijk behandeld.</p></div>';

@@ -14,6 +14,7 @@ window.NLH_BBS_CFG = {
 
   // niet aanpassen
   eyebrow: 'Body Balance Intake',
+  logoOnDark: 'assets/logo-on-dark.svg',
   consent: false,
   submitType: 'text/plain;charset=utf-8',
   draftKey: 'nlh-bbs-trial-draft',

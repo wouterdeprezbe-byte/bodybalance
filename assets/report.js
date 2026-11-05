@@ -14,7 +14,7 @@
   var ZONES = [{ to: 30, nl: 'Ernstig', full: 'Ernstig uit balans', c: '#7E1F22', ink: '#FFFFFF' }, { to: 50, nl: 'Sterk', full: 'Sterk uit balans', c: '#C2452D', ink: '#FFFFFF' },
     { to: 70, nl: 'Duidelijk', full: 'Duidelijk uit balans', c: '#E28A2B', ink: '#16293A' }, { to: 85, nl: 'Licht', full: 'Licht uit balans', c: '#9FB23A', ink: '#16293A' },
     { to: 100.01, nl: 'In balans', full: 'Sterk in balans', c: '#3F8A4A', ink: '#FFFFFF' }];
-  var INK = '#16293A', INK2 = '#3D4F60', MUTED = '#7D6B5C', LINE = '#DFE4E9', TRACK = '#E9EDF1', OCHRE = '#E0A32E';
+  var INK = '#16293A', MUTED = '#7D6B5C', LINE = '#E3DED6', TRACK = '#EEEAE3';
   var MONTHS = ['januari', 'februari', 'maart', 'april', 'mei', 'juni', 'juli', 'augustus', 'september', 'oktober', 'november', 'december'];
 
   function $(s) { return document.querySelector(s); }
@@ -47,27 +47,33 @@
     ZONES.forEach(function (z, i) { var to = Math.min(100, z.to); h += '<span style="width:' + (to - from) + '%;background:' + z.c + ';--zi:' + z.ink + '"' + (i === zone(v) ? ' class="on"' : '') + '>' + z.nl + '</span>'; from = to; });
     return h + '</div><div class="rp-ticks"><span style="left:0">0</span><span style="left:30%">30</span><span style="left:50%">50</span><span style="left:70%">70</span><span style="left:85%">85</span><span style="left:100%">100</span></div></div>';
   }
+  function tiles(d) {
+    var t = [['Geslacht', d.s === 'men' ? 'Man' : 'Vrouw']];
+    if (d.b) t.push(['Geboortedatum', dmy(d.b)]);
+    t.push(['Datum intake', dmy(d.d)]);
+    return t;
+  }
   function render(d) {
-    var z = ZONES[zone(d.t)];
-    var h = '<article class="rp-sheet" aria-label="Body Balance Rapport">';
-    h += '<header class="rp-head"><p class="rp-eyebrow">NextLevelHealth Coaching</p><h1>Body Balance Rapport</h1></header>';
-    h += '<dl class="rp-meta"><div><dt>Naam</dt><dd>' + esc(d.n) + '</dd></div><div><dt>Geslacht</dt><dd>' + (d.s === 'men' ? 'Man' : 'Vrouw') + '</dd></div>' +
-      (d.b ? '<div><dt>Geboortedatum</dt><dd>' + dmy(d.b) + '</dd></div>' : '') + '<div><dt>Datum intake</dt><dd>' + dmy(d.d) + '</dd></div></dl>';
+    var z = ZONES[zone(d.t)], A = base();
+    var h = '<div class="rp-actions"><button type="button" class="btn primary" id="pdf-btn">Download als PDF</button></div>';
+    h += '<article class="rp-sheet" aria-label="Body Balance Rapport">';
+    h += '<header class="rp-head"><img class="rp-logo" src="' + A + 'logo-on-dark.svg" alt="The Next Level Health Project" width="508" height="243"><div class="rp-rule" aria-hidden="true"></div>' +
+      '<h1>Body Balance <em>Rapport</em></h1><p class="rp-name">' + esc(d.n) + '</p><dl class="rp-tiles">' +
+      tiles(d).map(function (t) { return '<div><dt>' + t[0] + '</dt><dd>' + t[1] + '</dd></div>'; }).join('') + '</dl></header>';
     h += '<section class="rp-score"><p class="rp-label">Total Body Balance Score</p><div class="rp-num"><span class="num">' + n1(d.t) + '</span><span class="rp-pill" style="background:' + z.c + ';color:' + z.ink + '">' + z.full + '</span><small>op 100</small></div>' + rulerHtml(d.t) + '</section>';
-    h += '<section class="rp-card"><h2>Scorekaart</h2><p class="rp-legend">' + BANDS.map(function (b, i) { return '<span><i style="background:' + b.c + '"></i>' + b.nl + ' ' + (i === 0 ? '0–14%' : i === 1 ? '15–25%' : i === 2 ? '26–49%' : '50%+') + '</span>'; }).join('') + '</p>';
+    h += '<section class="rp-card"><h2 class="rp-h2"><span class="rp-icon" aria-hidden="true"><img src="' + A + 'mark-on-dark.svg" alt=""></span>Scorekaart</h2><p class="rp-legend">' + BANDS.map(function (b, i) { return '<span><i style="background:' + b.c + '"></i>' + b.nl + ' ' + (i === 0 ? '0–14%' : i === 1 ? '15–25%' : i === 2 ? '26–49%' : '50%+') + '</span>'; }).join('') + '</p>';
     groups().forEach(function (g) {
       h += '<h3>' + esc(g) + '</h3><ul>';
       CATS.forEach(function (c, i) {
         if (c[2] !== g) return;
         var p = d.c[i], b = band(p);
-        h += '<li><span class="rp-name"><b>' + esc(c[1]) + '</b> <span class="rp-code">' + c[0] + '</span><small style="color:' + b.c + '">● ' + b.nl + '</small></span>' +
+        h += '<li><span class="rp-name-cat"><b>' + esc(c[1]) + '</b> <span class="rp-code">' + c[0] + '</span><small style="color:' + b.c + '">● ' + b.nl + '</small></span>' +
           '<span class="rp-bar"><span style="width:' + Math.max(p, 1) + '%;background:' + b.c + '"></span></span><span class="rp-pct num">' + p + '%</span></li>';
       });
       h += '</ul>';
     });
-    h += '</section><footer class="rp-foot">Rapport gegenereerd door NextLevelHealth Coaching op ' + longDate(d.d) + '.</footer></article>';
+    h += '</section><footer class="rp-foot"><span>nextlevelhealth.me</span><span>' + esc(String(d.n || '').toUpperCase()) + ' · ' + dmy(d.d) + '</span></footer></article>';
     $('#main').innerHTML = h;
-    $('#nav').innerHTML = '<button type="button" class="btn primary small" id="pdf-btn">Download als PDF</button>';
     $('#pdf-btn').addEventListener('click', function () { downloadPdf(d, this); });
   }
 
@@ -79,87 +85,101 @@
   function rgb(hex) { var n = parseInt(hex.slice(1), 16); return [n >> 16, (n >> 8) & 255, n & 255]; }
 
   function buildPdf(d) {
-    var J = window.jspdf.jsPDF, doc = new J({ unit: 'mm', format: 'a4', compress: true });
+    var J = window.jspdf.jsPDF, doc = new J({ unit: 'mm', format: 'a4', compress: true }), IMG = window.BBS_PDF_IMG;
     window.BBS_PDF_FONTS.forEach(function (f) { doc.addFileToVFS(f.file, f.data); doc.addFont(f.file, f.family, f.style); });
-    var W = 210, L = 18, R = 192, CW = R - L;
+    var L = 18, R = 192, CW = R - L, SAND = '#F8F2E7', DEEP = '#16293A', CLAY = '#B4674A', TILE = '#273848', RULE = '#3A4A59', MUTE_D = '#9FB0BC';
     function fill(c) { doc.setFillColor.apply(doc, rgb(c)); }
     function color(c) { doc.setTextColor.apply(doc, rgb(c)); }
+    function draw(c) { doc.setDrawColor.apply(doc, rgb(c)); }
     function font(fam, st, size) { doc.setFont(fam, st); doc.setFontSize(size); }
     function text(t, x, y, o) { doc.text(String(t), x, y, o || {}); }
+    // letterspatiëring 0.16em zoals in het design system; jsPDF past charSpace toe in mm, dus breedte zelf berekenen
+    function label(t, x, y, c, o) {
+      var size = 6.5, cs = 0.16 * size * 0.3528, str = String(t).toUpperCase();
+      font('Plex', 'normal', size); color(c); doc.setCharSpace(0);
+      var w = doc.getTextWidth(str) + cs * (str.length - 1);
+      doc.setCharSpace(cs); text(str, o && o.align === 'right' ? x - w : x, y); doc.setCharSpace(0);
+    }
 
-    // kop
-    fill(INK); doc.rect(0, 0, W, 30, 'F');
-    fill(OCHRE); doc.triangle(W - 22, 0, W, 0, W, 22, 'F');
-    font('Plex', 'normal', 7.5); color(OCHRE); doc.setCharSpace(0.6); text('NEXTLEVELHEALTH COACHING', L, 12); doc.setCharSpace(0);
-    font('Archivo', 'bold', 21); color('#FFFFFF'); text('Body Balance Rapport', L, 23);
-
-    // gegevens
-    var meta = [['Naam', d.n], ['Geslacht', d.s === 'men' ? 'Man' : 'Vrouw']];
-    if (d.b) meta.push(['Geboortedatum', dmy(d.b)]);
-    meta.push(['Datum intake', dmy(d.d)]);
-    meta.forEach(function (m, i) {
-      var x = L + (i % 2) * (CW / 2), y = 41 + Math.floor(i / 2) * 13;
-      font('Plex', 'normal', 6.5); color(MUTED); doc.setCharSpace(0.4); text(m[0].toUpperCase(), x, y); doc.setCharSpace(0);
-      font('Instrument', 'bold', 11); color(INK); text(doc.splitTextToSize(String(m[1] || ''), CW / 2 - 6)[0] || '', x, y + 5.5);
+    // kopkaart zoals het bloedlabo-rapport
+    var cx = 12, cy = 12, cw = 186, ch = 68;
+    fill(DEEP); doc.roundedRect(cx, cy, cw, ch, 1.8, 1.8, 'F');
+    doc.saveGraphicsState();
+    doc.roundedRect(cx, cy, cw, ch, 1.8, 1.8, null); doc.clip(); doc.discardPath();
+    fill('#22374A'); doc.circle(cx + cw - 6, cy + 4, 34, 'F');
+    doc.restoreGraphicsState();
+    var lw = 36, lh = lw / IMG.logoRatio;
+    doc.addImage(IMG.logo, 'PNG', L, cy + 7, lw, lh);
+    draw(RULE); doc.setLineWidth(0.25); doc.line(L, cy + 9 + lh, R, cy + 9 + lh);
+    var ty = cy + 9 + lh + 10.5;
+    font('ArchivoW', 'normal', 21); color(SAND); text('Body Balance ', L, ty);
+    var tw = doc.getTextWidth('Body Balance '); color('#E0A32E'); text('Rapport', L + tw, ty);
+    font('Instrument', 'normal', 10.5); color(SAND); text(doc.splitTextToSize(String(d.n || ''), CW)[0] || '', L, ty + 6.5);
+    var T = tiles(d), gap = 3, tw2 = (CW - gap * (T.length - 1)) / T.length, ty2 = ty + 10;
+    T.forEach(function (t, i) {
+      var x = L + i * (tw2 + gap);
+      fill(TILE); doc.roundedRect(x, ty2, tw2, 12.5, 1.2, 1.2, 'F');
+      label(t[0], x + 3.5, ty2 + 4.6, MUTE_D);
+      font('Instrument', 'bold', 10); color(SAND); text(t[1], x + 3.5, ty2 + 9.6);
     });
-    var y0 = 41 + Math.ceil(meta.length / 2) * 13 - 2;
-    doc.setDrawColor.apply(doc, rgb(LINE)); doc.setLineWidth(0.3); doc.line(L, y0, R, y0);
 
     // totaalscore
-    var z = ZONES[zone(d.t)], ys = y0 + 10;
-    font('Plex', 'normal', 7); color(MUTED); doc.setCharSpace(0.5); text('TOTAL BODY BALANCE SCORE', L, ys); doc.setCharSpace(0);
-    font('Archivo', 'bold', 44); color(INK); var num = n1(d.t); text(num, L - 0.6, ys + 17);
+    var z = ZONES[zone(d.t)], ys = cy + ch + 11;
+    label('Total Body Balance Score', L, ys, MUTED);
+    font('ArchivoW', 'bold', 42); color(INK); var num = n1(d.t); text(num, L - 0.5, ys + 16);
     var nx = L + doc.getTextWidth(num) + 6;
-    font('Instrument', 'bold', 10); var pw = doc.getTextWidth(z.full) + 8;
-    fill(z.c); doc.roundedRect(nx, ys + 4.5, pw, 7.5, 3.75, 3.75, 'F'); color(z.ink); text(z.full, nx + 4, ys + 9.6);
-    font('Instrument', 'normal', 8.5); color(INK2); text('op 100', nx, ys + 17);
+    font('Instrument', 'bold', 10); var pw = doc.getTextWidth(z.full) + 9;
+    fill(z.c); doc.roundedRect(nx, ys + 4, pw, 7.5, 3.75, 3.75, 'F'); color(z.ink); text(z.full, nx + 4.5, ys + 9.1);
+    font('Instrument', 'normal', 8.5); color(MUTED); text('op 100', nx, ys + 16);
 
     // kleurenbalk
-    var yb = ys + 27, bh = 7.5, from = 0;
+    var yb = ys + 24, bh = 7, from = 0;
     ZONES.forEach(function (zz, i) {
       var to = Math.min(100, zz.to), x = L + CW * from / 100, w = CW * (to - from) / 100;
       fill(zz.c); doc.rect(x + (i ? 0.4 : 0), yb, w - (i ? 0.4 : 0), bh, 'F');
-      font('Plex', 'normal', 6.5); color(zz.ink); text(zz.nl, x + 2, yb + 4.9);
+      font('Plex', 'normal', 6.3); color(zz.ink); doc.setCharSpace(0.25); text(zz.nl.toUpperCase(), x + 2, yb + 4.6); doc.setCharSpace(0);
       from = to;
     });
     var mx = L + CW * Math.max(0, Math.min(100, d.t)) / 100;
-    fill(INK); doc.triangle(mx - 2.6, yb - 4.2, mx + 2.6, yb - 4.2, mx, yb - 0.6, 'F');
-    font('Plex', 'normal', 6.5); color(MUTED);
-    [0, 30, 50, 70, 85, 100].forEach(function (t) { text(String(t), L + CW * t / 100, yb + bh + 4.2, { align: t === 0 ? 'left' : t === 100 ? 'right' : 'center' }); });
+    fill(INK); doc.triangle(mx - 2.5, yb - 4, mx + 2.5, yb - 4, mx, yb - 0.6, 'F');
+    font('Plex', 'normal', 6.3); color(MUTED);
+    [0, 30, 50, 70, 85, 100].forEach(function (t) { text(String(t), L + CW * t / 100, yb + bh + 4, { align: t === 0 ? 'left' : t === 100 ? 'right' : 'center' }); });
 
     // scorekaart
-    var y = yb + bh + 16;
-    font('Archivo', 'bold', 15); color(INK); text('Scorekaart', L, y);
-    y += 6; var lx = L;
+    var y = yb + bh + 15;
+    fill(DEEP); doc.roundedRect(L, y - 6, 8, 8, 1.2, 1.2, 'F'); doc.addImage(IMG.mark, 'PNG', L + 1.2, y - 4.8, 5.6, 5.6);
+    font('ArchivoW', 'normal', 15); color(INK); text('Scorekaart', L + 11, y);
+    y += 6.5; var lx = L;
     BANDS.forEach(function (b, i) {
       var lab = b.nl + ' ' + (i === 0 ? '0–14%' : i === 1 ? '15–25%' : i === 2 ? '26–49%' : '50%+');
-      fill(b.c); doc.circle(lx + 1.2, y - 1.1, 1.2, 'F');
-      font('Instrument', 'normal', 8); color(INK2); text(lab, lx + 3.4, y); lx += doc.getTextWidth(lab) + 9;
+      fill(b.c); doc.circle(lx + 1.1, y - 1.1, 1.1, 'F');
+      font('Instrument', 'normal', 8); color(INK); text(lab, lx + 3.3, y); lx += doc.getTextWidth(lab) + 8.5;
     });
     y += 7;
     var bx = 112, bw = 62;
     groups().forEach(function (g) {
-      font('Plex', 'normal', 7); color(MUTED); doc.setCharSpace(0.5); text(g.toUpperCase(), L, y); doc.setCharSpace(0);
-      y += 2.5;
+      label(g, L, y, MUTED);
+      y += 2.3;
       CATS.forEach(function (c, i) {
         if (c[2] !== g) return;
         var p = d.c[i], b = band(p);
-        doc.setDrawColor.apply(doc, rgb(LINE)); doc.line(L, y, R, y);
-        font('Instrument', 'bold', 10.5); color(INK); text(c[1], L, y + 5.4);
-        var cw = doc.getTextWidth(c[1]); font('Plex', 'normal', 6.5); color(MUTED); text(c[0], L + cw + 1.8, y + 5.4);
-        font('Instrument', 'bold', 8); color(b.c); fill(b.c); doc.circle(L + 0.9, y + 8.6, 0.9, 'F'); text(b.nl, L + 3, y + 9.6);
-        fill(TRACK); doc.roundedRect(bx, y + 4.2, bw, 3, 1.5, 1.5, 'F');
-        fill(b.c); doc.roundedRect(bx, y + 4.2, Math.max(3, bw * p / 100), 3, 1.5, 1.5, 'F');
-        font('Instrument', 'bold', 11.5); color(INK); text(p + '%', R, y + 6.8, { align: 'right' });
-        y += 12;
+        draw(LINE); doc.setLineWidth(0.25); doc.line(L, y, R, y);
+        font('Instrument', 'bold', 10.5); color(INK); text(c[1], L, y + 5.2);
+        var cw2 = doc.getTextWidth(c[1]); label(c[0], L + cw2 + 1.8, y + 5.2, MUTED);
+        font('Instrument', 'bold', 8); color(b.c); fill(b.c); doc.circle(L + 0.9, y + 8.4, 0.9, 'F'); text(b.nl, L + 3, y + 9.3);
+        fill(TRACK); doc.roundedRect(bx, y + 4, bw, 3, 1.5, 1.5, 'F');
+        fill(b.c); doc.roundedRect(bx, y + 4, Math.max(3, bw * p / 100), 3, 1.5, 1.5, 'F');
+        font('ArchivoW', 'bold', 11.5); color(INK); text(p + '%', R, y + 6.6, { align: 'right' });
+        y += 10.8;
       });
       y += 4;
     });
 
-    // voet
-    doc.setDrawColor.apply(doc, rgb(LINE)); doc.line(L, 281, R, 281);
-    font('Instrument', 'normal', 8); color(MUTED); text('Rapport gegenereerd door NextLevelHealth Coaching op ' + longDate(d.d) + '.', L, 286);
-    doc.setProperties({ title: 'Body Balance Rapport – ' + (d.n || ''), author: 'NextLevelHealth Coaching', subject: 'Body Balance Rapport' });
+    // voet zoals het bloedlabo-rapport
+    draw(CLAY); doc.setLineWidth(0.3); doc.line(L, 282, R, 282);
+    label('nextlevelhealth.me', L, 286.5, MUTED);
+    label(String(d.n || '') + ' · ' + dmy(d.d), R, 286.5, MUTED, { align: 'right' });
+    doc.setProperties({ title: 'Body Balance Rapport – ' + (d.n || ''), author: 'The Next Level Health Project', subject: 'Body Balance Rapport' });
     return doc;
   }
   function fileName(d) { return ('Body Balance Rapport - ' + (d.n || 'klant') + ' - ' + d.d).replace(/[\\/:*?"<>|]+/g, '') + '.pdf'; }
@@ -168,6 +188,7 @@
     var need = [];
     if (!window.jspdf) need.push(load(b + 'vendor/jspdf.umd.min.js'));
     if (!window.BBS_PDF_FONTS) need.push(load(b + 'vendor/pdf-fonts.js'));
+    if (!window.BBS_PDF_IMG) need.push(load(b + 'vendor/pdf-img.js'));
     Promise.all(need).then(function () { buildPdf(d).save(fileName(d)); })
       .catch(function () { alertBox('De PDF kon niet gemaakt worden. Probeer het opnieuw.'); })
       .then(function () { btn.disabled = false; btn.textContent = lab; });

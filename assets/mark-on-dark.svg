@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="29 30 197 197" width="197" height="197" role="img" aria-label="The Next Level Health Project">
+  <circle cx="128.00" cy="128.00" r="96.00" fill="none" stroke="#EFEDE8" stroke-width="6.00" opacity=".30"></circle>
+      <path d="M 68.90 52.35 A 96.00 96.00 0 1 0 221.90 108.04" fill="none" stroke="#EFEDE8" stroke-width="12.96" stroke-linecap="round"></path>
+      <g transform="translate(128.00 128.00) scale(1.060) translate(-41.45 31)"><rect x="8.06" y="-63.20" width="61.42" height="12.20" rx="1.6" fill="#F4BC33"></rect>
+      <rect x="8.06" y="-38.15" width="54.04" height="12.03" rx="1.6" fill="#F4BC33"></rect>
+      <rect x="8.06" y="-12.21" width="61.42" height="12.21" rx="1.6" fill="#F4BC33"></rect></g>
+</svg>
