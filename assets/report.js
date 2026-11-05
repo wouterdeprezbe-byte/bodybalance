@@ -7,8 +7,10 @@
     ['LA', 'Lage androgenen', 'Geslachtshormonen'], ['HA', 'Hoge androgenen', 'Geslachtshormonen'],
     ['LC', 'Laag cortisol', 'Bijnier en stress'], ['HC', 'Hoog cortisol', 'Bijnier en stress'],
     ['HYPO', 'Hypometabolisme', 'Stofwisseling'], ['MS', 'Metabool syndroom', 'Stofwisseling'],
-    ['TL', 'Toxische belasting', 'Belasting']
+    ['DG', 'Verstoorde spijsvertering', 'Spijsvertering'], ['TL', 'Toxische belasting', 'Belasting']
   ];
+  /* volgorde van de scores in de link: versie 1 (9 domeinen) en versie 2 (met spijsvertering) */
+  var ORDER = { 1: ['EPD', 'ED', 'LA', 'HA', 'LC', 'HC', 'HYPO', 'MS', 'TL'], 2: ['EPD', 'ED', 'LA', 'HA', 'LC', 'HC', 'HYPO', 'MS', 'DG', 'TL'] };
   var BANDS = [{ id: 'ok', max: 14, nl: 'In balans', c: '#4F8A4B', soft: '#DCE8D3' }, { id: 'watch', max: 25, nl: 'Suboptimaal', c: '#D69A1A', soft: '#F6E8C6' },
     { id: 'off', max: 49, nl: 'Uit balans', c: '#C2552F', soft: '#F4DED4' }, { id: 'severe', max: 100, nl: 'Ernstige disbalans', c: '#8C2323', soft: '#EED3D1' }];
   var ZONES = [{ to: 30, nl: 'Ernstig', full: 'Ernstig uit balans', c: '#7E1F22', ink: '#FFFFFF' }, { to: 50, nl: 'Sterk', full: 'Sterk uit balans', c: '#C2452D', ink: '#FFFFFF' },
@@ -24,7 +26,8 @@
   function longDate(iso) { var p = String(iso || '').split('-'); return p.length === 3 ? +p[2] + ' ' + MONTHS[+p[1] - 1] + ' ' + p[0] : ''; }
   function band(pct) { for (var i = 0; i < BANDS.length; i++) if (pct <= BANDS[i].max) return BANDS[i]; return BANDS[3]; }
   function zone(v) { for (var i = 0; i < ZONES.length; i++) if (v < ZONES[i].to) return i; return 4; }
-  function groups() { var g = []; CATS.forEach(function (c) { if (g.indexOf(c[2]) < 0) g.push(c[2]); }); return g; }
+  function cats(d) { return CATS.filter(function (c) { return c[0] in d.p; }); }
+  function groups(d) { var g = []; cats(d).forEach(function (c) { if (g.indexOf(c[2]) < 0) g.push(c[2]); }); return g; }
 
   function parse() {
     var m = /[#&]r=([A-Za-z0-9_-]+)/.exec(location.hash);
@@ -34,8 +37,10 @@
       var bin = atob(b64), bytes = new Uint8Array(bin.length);
       for (var i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
       var d = JSON.parse(new TextDecoder().decode(bytes));
-      if (!d || d.v !== 1 || !Array.isArray(d.c) || d.c.length !== 9 || typeof d.t !== 'number') return null;
-      d.c = d.c.map(function (x) { return Math.max(0, Math.min(100, Math.round(+x || 0))); });
+      var order = d && (d.v === 1 || d.v === 2) ? ORDER[d.v] : null;
+      if (!order || !Array.isArray(d.c) || d.c.length !== order.length || typeof d.t !== 'number') return null;
+      d.p = {};
+      order.forEach(function (k, i) { d.p[k] = Math.max(0, Math.min(100, Math.round(+d.c[i] || 0))); });
       d.t = Math.max(0, Math.min(100, d.t));
       return d;
     } catch (e) { return null; }
@@ -62,11 +67,11 @@
       tiles(d).map(function (t) { return '<div><dt>' + t[0] + '</dt><dd>' + t[1] + '</dd></div>'; }).join('') + '</dl></header>';
     h += '<section class="rp-score"><p class="rp-label">Total Body Balance Score</p><div class="rp-num"><span class="num">' + n1(d.t) + '</span><span class="rp-pill" style="background:' + z.c + ';color:' + z.ink + '">' + z.full + '</span><small>op 100</small></div>' + rulerHtml(d.t) + '</section>';
     h += '<section class="rp-card"><h2 class="rp-h2"><span class="rp-icon" aria-hidden="true"><img src="' + A + 'mark-on-dark.svg" alt=""></span>Scorekaart</h2><p class="rp-legend">' + BANDS.map(function (b, i) { return '<span><i style="background:' + b.c + '"></i>' + b.nl + ' ' + (i === 0 ? '0–14%' : i === 1 ? '15–25%' : i === 2 ? '26–49%' : '50%+') + '</span>'; }).join('') + '</p>';
-    groups().forEach(function (g) {
+    groups(d).forEach(function (g) {
       h += '<h3>' + esc(g) + '</h3><ul>';
-      CATS.forEach(function (c, i) {
+      cats(d).forEach(function (c) {
         if (c[2] !== g) return;
-        var p = d.c[i], b = band(p);
+        var p = d.p[c[0]], b = band(p);
         h += '<li><span class="rp-name-cat"><b>' + esc(c[1]) + '</b> <span class="rp-code">' + c[0] + '</span><small style="color:' + b.c + '">● ' + b.nl + '</small></span>' +
           '<span class="rp-bar"><span style="width:' + Math.max(p, 1) + '%;background:' + b.c + '"></span></span><span class="rp-pct num">' + p + '%</span></li>';
       });
@@ -124,7 +129,7 @@
     });
 
     // totaalscore
-    var z = ZONES[zone(d.t)], ys = cy + ch + 11;
+    var z = ZONES[zone(d.t)], ys = cy + ch + 9;
     label('Total Body Balance Score', L, ys, MUTED);
     font('ArchivoW', 'bold', 42); color(INK); var num = n1(d.t); text(num, L - 0.5, ys + 16);
     var nx = L + doc.getTextWidth(num) + 6;
@@ -146,7 +151,7 @@
     [0, 30, 50, 70, 85, 100].forEach(function (t) { text(String(t), L + CW * t / 100, yb + bh + 4, { align: t === 0 ? 'left' : t === 100 ? 'right' : 'center' }); });
 
     // scorekaart
-    var y = yb + bh + 15;
+    var y = yb + bh + 13;
     fill(DEEP); doc.roundedRect(L, y - 6, 8, 8, 1.2, 1.2, 'F'); doc.addImage(IMG.mark, 'PNG', L + 1.2, y - 4.8, 5.6, 5.6);
     font('ArchivoW', 'normal', 15); color(INK); text('Scorekaart', L + 11, y);
     y += 6.5; var lx = L;
@@ -157,12 +162,13 @@
     });
     y += 7;
     var bx = 112, bw = 62;
-    groups().forEach(function (g) {
+    var rowH = cats(d).length > 9 ? 10.2 : 10.8, grpGap = cats(d).length > 9 ? 4.5 : 4;
+    groups(d).forEach(function (g) {
       label(g, L, y, MUTED);
       y += 2.3;
-      CATS.forEach(function (c, i) {
+      cats(d).forEach(function (c) {
         if (c[2] !== g) return;
-        var p = d.c[i], b = band(p);
+        var p = d.p[c[0]], b = band(p);
         draw(LINE); doc.setLineWidth(0.25); doc.line(L, y, R, y);
         font('Instrument', 'bold', 10.5); color(INK); text(c[1], L, y + 5.2);
         var cw2 = doc.getTextWidth(c[1]); label(c[0], L + cw2 + 1.8, y + 5.2, MUTED);
@@ -170,9 +176,9 @@
         fill(TRACK); doc.roundedRect(bx, y + 4, bw, 3, 1.5, 1.5, 'F');
         fill(b.c); doc.roundedRect(bx, y + 4, Math.max(3, bw * p / 100), 3, 1.5, 1.5, 'F');
         font('ArchivoW', 'bold', 11.5); color(INK); text(p + '%', R, y + 6.6, { align: 'right' });
-        y += 10.8;
+        y += rowH;
       });
-      y += 4;
+      y += grpGap;
     });
 
     // voet zoals het bloedlabo-rapport

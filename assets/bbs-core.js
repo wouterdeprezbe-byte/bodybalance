@@ -29,6 +29,9 @@ var BBSUI = (function () {
     MS: { nl: 'Metabool syndroom', en: 'Metabolic Syndrome', g: 'Stofwisseling',
       women: 'Signalen van insulineresistentie: buikvet, hoge bloeddruk, verhoogde bloedvetten en tintelingen in handen of voeten.',
       men: 'Signalen van insulineresistentie: buikvet, hoge bloeddruk, verhoogde bloedvetten, suikerschommelingen en moeilijkere erecties.' },
+    DG: { nl: 'Verstoorde spijsvertering', en: 'Digestive Dysfunction', g: 'Spijsvertering',
+      women: 'Hoe goed maag en darm hun werk doen. Buikpijn, een opgeblazen gevoel, diarree en verstopping wegen het zwaarst, maagzuur, winderigheid en boeren gemiddeld, en vermoeidheid na de maaltijd, aanslag op de tong en aften licht. Voorlopige score.',
+      men: 'Hoe goed maag en darm hun werk doen. Buikpijn, een opgeblazen gevoel, diarree en verstopping wegen het zwaarst, maagzuur, winderigheid en boeren gemiddeld, en vermoeidheid na de maaltijd, aanslag op de tong en aften licht. Voorlopige score.' },
     TL: { nl: 'Toxische belasting', en: 'Toxic Load', g: 'Belasting',
       women: 'De totale belasting voor lever, lymfe, darm en immuunsysteem. Hoe voller de ‘regenton’, hoe sneller klachten overlopen.',
       men: 'De totale belasting voor lever, lymfe, darm en immuunsysteem. Hoe voller de ‘regenton’, hoe sneller klachten overlopen.' }
@@ -64,6 +67,9 @@ var BBSUI = (function () {
     var Q = BBS.allQuestions(sex).filter(function (q) { return q.h.indexOf(key) >= 0; })[0];
     return Q ? Q.t.replace(/\?$/, '') : fallback;
   }
+  function questionById(sex, id) { return BBS.allQuestions(sex).filter(function (q) { return q.id === id; })[0]; }
+  function partTitle(sex, p) { var Q = p.q && questionById(sex, p.q); return Q ? Q.t.replace(/\?$/, '') : questionTitle(sex, p.k, p.nl); }
+  function partLabel(sex, p) { var Q = p.q && questionById(sex, p.q); return Q ? optsOf(Q)[p.sev] : answerLabel(sex, p.k, p.sev); }
   function computeSeries(list) {
     return list.map(function (m) { return { m: m, r: BBS.score(m), code: m.code || BBS.encode(m) }; })
       .sort(function (a, b) { return a.m.date < b.m.date ? -1 : a.m.date > b.m.date ? 1 : 0; });
@@ -105,8 +111,8 @@ var BBSUI = (function () {
       if (parts.length) {
         h += '<table class="contrib"><thead><tr><th scope="col">Signaal</th><th scope="col">Antwoord</th><th scope="col" class="num">Bijdrage</th></tr></thead><tbody>';
         parts.forEach(function (p) {
-          var ex = (DATA.expl[sex][c] || {})[p.k];
-          h += '<tr><td><b>' + esc(questionTitle(sex, p.k, p.nl)) + '</b>' + (ex ? '<small>' + esc(ex) + '</small>' : '') + '</td><td>' + esc(answerLabel(sex, p.k, p.sev)) + '</td><td class="num">+' + n1(p.pts) + '</td></tr>';
+          var ex = ((DATA.expl[sex] || {})[c] || {})[p.k];
+          h += '<tr><td><b>' + esc(partTitle(sex, p)) + '</b>' + (ex ? '<small>' + esc(ex) + '</small>' : '') + '</td><td>' + esc(partLabel(sex, p)) + '</td><td class="num">+' + n1(p.pts) + '</td></tr>';
         });
         h += '</tbody></table>';
       } else h += '<p class="small">Geen signalen aangeduid voor dit domein.</p>';
@@ -136,7 +142,7 @@ var BBSUI = (function () {
     h += '<div class="rh-score"><h1 class="score num">' + n1(r.bbs) + '</h1><div class="rh-band">' + totalBadge(r.bbs, r.totalBand) +
       (prev ? '<p class="small">Vorige meting ' + n1(prev.r.bbs) + ' ' + deltaChip(r.bbs, prev.r.bbs, false) + '</p>' : '<p class="small">Total Body Balance Score, op 100</p>') + '</div></div>';
     h += ruler(r.bbs);
-    h += '<details class="how"><summary>Hoe wordt deze score berekend?</summary><p>Elk domein krijgt een percentage: de gewogen som van de signalen gedeeld door de maximale score van dat domein. De totaalscore start bij 100, trekt het gemiddelde van de negen domeinen af en daarna strafpunten per domein dat niet in balans is: 2 voor suboptimaal, 5 voor uit balans, 8 voor ernstig. Zo weegt één domein dat sterk ontspoort zwaarder door dan veel kleine signalen.</p><p class="small num">Gemiddelde ' + n1(r.avg) + ' · strafpunten ' + r.penalty + ' (' + r.counts.watch + '× suboptimaal, ' + r.counts.off + '× uit balans, ' + r.counts.severe + '× ernstig)</p></details>';
+    h += '<details class="how"><summary>Hoe wordt deze score berekend?</summary><p>Elk domein krijgt een percentage: de gewogen som van de signalen gedeeld door de maximale score van dat domein. De totaalscore start bij 100, trekt het gemiddelde van de ' + BBS.ALL.length + ' domeinen af en daarna strafpunten per domein dat niet in balans is: 2 voor suboptimaal, 5 voor uit balans, 8 voor ernstig. Zo weegt één domein dat sterk ontspoort zwaarder door dan veel kleine signalen.</p><p class="small num">Gemiddelde ' + n1(r.avg) + ' · strafpunten ' + r.penalty + ' (' + r.counts.watch + '× suboptimaal, ' + r.counts.off + '× uit balans, ' + r.counts.severe + '× ernstig)</p></details>';
     h += '</section>';
     h += notesBlock(cur.m.notes);
     h += '<section class="block"><div class="block-h"><h2>Scorekaart</h2><p class="small">Klik op een domein voor de signalen die het meest doorwegen.</p></div>';

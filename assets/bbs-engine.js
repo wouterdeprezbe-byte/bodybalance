@@ -1,12 +1,13 @@
 /* Body Balance Score — rekenkern (pure functies, geen DOM).
    Methode: ZRT-symptoomcategorieën (gewogen score / max. score), gewichten
-   herberekend op 30 ZRT-voorbeeldcases, plus toxische belasting (Cabral-quiz)
-   en de Total Body Balance Score van Wouter Deprez. */
+   herberekend op 30 ZRT-voorbeeldcases, plus spijsvertering (voorlopig, uit de
+   spijsverteringssignalen), toxische belasting (Cabral-quiz) en de Total Body
+   Balance Score van Wouter Deprez. */
 var BBS = (function () {
   'use strict';
   var D = null;
   var CATS = ['EPD', 'ED', 'LA', 'HA', 'LC', 'HC', 'HYPO', 'MS'];
-  var ALL = CATS.concat(['TL']);
+  var ALL = CATS.concat(['DG', 'TL']);
   var BANDS = [
     { id: 'ok', max: 14, nl: 'In balans', hint: 'Laag risico' },
     { id: 'watch', max: 25, nl: 'Suboptimaal', hint: 'Preventieve ondersteuning aangewezen' },
@@ -71,6 +72,19 @@ var BBS = (function () {
     res.toxTotal = tot; res.toxBySection = bySec;
     res.cats.TL = Math.min(1, tot / D.toxMax);
     res.contrib.TL = [];
+    /* spijsvertering (voorlopig): gewogen spijsverteringssignalen, zelfde methode als de ZRT-domeinen */
+    var dden = 0, dnum = 0, dparts = [], tix = {};
+    tx.forEach(function (it, i) { tix[it.en] = i; });
+    (D.dg || []).forEach(function (g) {
+      var i = tix[g.en]; if (i == null) return;
+      dden += g.w;
+      var s = m.t[i] || 0;
+      if (s > 0) { dnum += g.w * s / 3; dparts.push({ k: g.en, nl: tx[i].nl, sev: s, w: g.w, q: toxQuestion(m.sex, g.en) }); }
+    });
+    dparts.forEach(function (p) { p.pts = 100 * p.w * p.sev / 3 / dden; });
+    dparts.sort(function (a, b) { return b.pts - a.pts; });
+    res.cats.DG = dden ? dnum / dden : 0;
+    res.contrib.DG = dparts;
     var sum = 0, pen = 0, counts = { ok: 0, watch: 0, off: 0, severe: 0 };
     ALL.forEach(function (c) {
       var b = bandOf(res.cats[c]); res.bands[c] = b.id; counts[b.id]++;
@@ -170,6 +184,12 @@ var BBS = (function () {
 
   /* ---------- van vragen naar scores: elke vraag voedt een of meer hormonale en/of toxiciteitsitems ---------- */
   function questions(sex) { return D.questions[sex]; }
+  /* id van de vraag die een toxiciteitsitem voedt (voor de weergave van de signalen) */
+  function toxQuestion(sex, en) {
+    if (!D.questions) return null;
+    var Q = allQuestions(sex).filter(function (q) { return (q.x || []).indexOf(en) >= 0; })[0];
+    return Q ? Q.id : null;
+  }
   function allQuestions(sex) { var out = []; D.questions[sex].pages.forEach(function (p) { p.q.forEach(function (q) { out.push(q); }); }); return out; }
   function fromAnswers(sex, a) {
     var q = items(sex), tx = toxItems();
@@ -216,6 +236,10 @@ var BBS = (function () {
       d: 'Een hoge insuline zet de eierstokken aan tot meer androgeenproductie. Acne, haargroei en buikvet samen met metabole signalen passen bij een PCOS-achtig patroon.' });
     if (hi('LC') && up('LA') && !up('HC')) out.push({ k: ['LC', 'LA'], t: 'Uitputtingspatroon',
       d: 'Laag cortisol en lage androgenen zonder duidelijke hoge stresssignalen: de bijnier schiet tekort. Herstel vraagt rust, regelmaat en een stabiele bloedsuiker eerder dan extra prikkels.' });
+    if (up('DG') && (up('HC') || up('LC'))) out.push({ k: ['DG', 'HC', 'LC'], t: 'Stress en spijsvertering',
+      d: 'Stress zet de vertering op een laag pitje: minder maagzuur en verteringsenzymen, een tragere of juist onrustige darm en een gevoeliger darmwand. Omgekeerd stuurt een onrustige darm ook stresssignalen naar het brein (darm-hersen-as).' });
+    if (up('DG') && up('ED')) out.push({ k: ['DG', 'ED'], t: 'Darm en oestrogeenafbraak',
+      d: 'De lever voert oestrogeen af via de darm. Een verstoorde darmflora kan het daar weer vrijmaken, waarna het opnieuw in omloop komt. Verstopping versterkt dat en zo ontstaat sneller dominantie.' });
     return out;
   }
 
@@ -225,6 +249,8 @@ var BBS = (function () {
     var out = [];
     if (p('TL') >= 15) out.push({ t: 'Ontlasten: lever, darm en lymfe', k: ['TL'],
       d: 'Eerst de ‘regenton’ leegmaken: een begeleide detox van 7 tot 21 dagen, voldoende vezels en water, dagelijks bewegen en zweten. Zo komt er ruimte voor de volgende stappen.' });
+    if (p('DG') >= 15) out.push({ t: 'Spijsvertering herstellen', k: ['DG'],
+      d: 'Rustig en aan tafel eten, goed kauwen, voldoende vezels en water. Nagaan welke voedingsmiddelen klachten geven en de darm gericht herstellen, eventueel op basis van een stoelgangsonderzoek.' });
     if (p('HC') >= 15 || p('LC') >= 15) out.push({ t: 'Stressas en slaap herstellen', k: ['HC', 'LC'],
       d: 'Vast slaapritme, ademhaling en ontspanning, ochtendlicht, regelmatig eten. Adaptogenen kunnen helpen, in overleg met je coach. Zonder deze basis stabiliseren de hormonen niet.' });
     if (p('MS') >= 15) out.push({ t: 'Bloedsuiker en metabolisme', k: ['MS'],
@@ -248,6 +274,7 @@ var BBS = (function () {
     HC: 'Cortisoldagprofiel (4-punts speeksel of DUTCH)',
     HYPO: 'Volledig schildklierpanel: TSH, vrij T4, vrij T3, reverse T3, anti-TPO en anti-TG',
     MS: 'Nuchtere glucose en insuline (HOMA-IR), HbA1c, lipidenprofiel, middelomtrek en bloeddruk',
+    DG: 'Uitgebreid stoelgangsonderzoek (darmflora, calprotectine, pancreaselastase), bij vermoeden een SIBO-ademtest of coeliakieserologie',
     TL: 'Lever- en nierwaarden, eventueel haarmineralenanalyse (HTMA) of zware metalen'
   };
   function tests(res) {
@@ -264,7 +291,7 @@ var BBS = (function () {
   }
 
   var api = { init: init, items: items, toxItems: toxItems, score: score, encode: encode, decode: decode,
-    questions: questions, allQuestions: allQuestions, fromAnswers: fromAnswers, NOTE_KEYS: NOTE_KEYS,
+    questions: questions, allQuestions: allQuestions, fromAnswers: fromAnswers, toxQuestion: toxQuestion, NOTE_KEYS: NOTE_KEYS,
     patterns: patterns, phases: phases, tests: tests, cabral: cabral, bandOf: bandOf, totalBand: totalBand,
     BANDS: BANDS, PENALTY: PENALTY, TOTAL_BANDS: TOTAL_BANDS, CATS: CATS, ALL: ALL };
   return api;
