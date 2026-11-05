@@ -1,0 +1,54 @@
+/* Body Balance Rapport (klant) — één A4-achtig blad, zelfde huisstijl als de vragenlijst. */
+.nlh-bbs-report main { align-items: center; }
+.rp-sheet { width: 100%; max-width: 794px; background: #FFFFFF; color: #16293A; border: 1px solid var(--line); border-radius: var(--r); overflow: hidden; box-shadow: 0 1px 2px rgba(22, 41, 58, .06); }
+.rp-head { background: #16293A; color: #FFFFFF; padding: 26px clamp(18px, 5vw, 48px) 22px; position: relative; }
+.rp-head::after { content: ""; position: absolute; top: 0; right: 0; width: 64px; height: 64px; background: #E0A32E; clip-path: polygon(0 0, 100% 0, 100% 100%); }
+.rp-eyebrow { font: 500 0.72rem/1.2 var(--f-mono); letter-spacing: 0.12em; text-transform: uppercase; color: #E0A32E; margin-bottom: 8px; }
+.rp-head h1 { font-size: clamp(1.7rem, 5vw, 2.3rem); color: #FFFFFF; }
+.rp-meta { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px 24px; margin: 0; padding: 22px clamp(18px, 5vw, 48px); border-bottom: 1px solid #DFE4E9; }
+.rp-meta dt { font: 500 0.68rem/1.2 var(--f-mono); letter-spacing: 0.08em; text-transform: uppercase; color: #7D6B5C; }
+.rp-meta dd { margin: 4px 0 0; font-weight: 600; font-size: 1.02rem; overflow-wrap: anywhere; }
+.rp-score { padding: 22px clamp(18px, 5vw, 48px) 8px; }
+.rp-label { font: 500 0.7rem/1.2 var(--f-mono); letter-spacing: 0.1em; text-transform: uppercase; color: #7D6B5C; }
+.rp-num { display: flex; align-items: center; flex-wrap: wrap; gap: 6px 14px; margin-top: 6px; }
+.rp-num .num { font: 800 clamp(3rem, 12vw, 4.2rem)/1 var(--f-display); letter-spacing: -0.02em; }
+.rp-pill { font: 700 0.95rem/1 var(--f-body); padding: 7px 13px; border-radius: 999px; white-space: nowrap; }
+.rp-num small { color: #3D4F60; }
+.rp-ruler { position: relative; padding-top: 16px; margin: 22px 0 6px; }
+.rp-marker { position: absolute; top: 2px; width: 0; height: 0; transform: translateX(-50%); border-left: 9px solid transparent; border-right: 9px solid transparent; border-top: 12px solid #16293A; }
+.rp-track { display: flex; height: 30px; gap: 2px; }
+@media (max-width: 520px) { .rp-track { height: 18px; } }
+.rp-track span { color: var(--zi); display: flex; align-items: center; padding: 0 8px; font: 500 0.7rem/1 var(--f-mono); white-space: nowrap; overflow: hidden; }
+.rp-track span:first-child { border-radius: 6px 0 0 6px; } .rp-track span:last-child { border-radius: 0 6px 6px 0; }
+.rp-track span.on { font-weight: 700; }
+.rp-ticks { position: relative; height: 18px; margin-top: 4px; font: 500 0.7rem/1 var(--f-mono); color: #7D6B5C; }
+.rp-ticks span { position: absolute; transform: translateX(-50%); }
+.rp-ticks span:first-child { transform: none; } .rp-ticks span:last-child { transform: translateX(-100%); }
+.rp-card { padding: 18px clamp(18px, 5vw, 48px) 8px; }
+.rp-card h2 { font-size: 1.35rem; color: #16293A; }
+.rp-legend { display: flex; flex-wrap: wrap; gap: 4px 16px; font-size: 0.82rem; color: #3D4F60; margin: 6px 0 4px; }
+.rp-legend i { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 6px; }
+.rp-card h3 { font: 500 0.7rem/1.2 var(--f-mono); letter-spacing: 0.1em; text-transform: uppercase; color: #7D6B5C; margin: 18px 0 2px; }
+.rp-card ul { list-style: none; margin: 0; padding: 0; }
+.rp-card li { display: grid; grid-template-columns: minmax(0, 1fr) minmax(90px, 36%) 3.4rem; gap: 14px; align-items: center; padding: 10px 0; border-top: 1px solid #DFE4E9; }
+.rp-name b { font-size: 1rem; }
+.rp-code { font: 500 0.66rem/1 var(--f-mono); color: #7D6B5C; }
+.rp-name small { display: block; font-weight: 600; font-size: 0.8rem; margin-top: 2px; }
+.rp-bar { height: 8px; border-radius: 4px; background: #E9EDF1; overflow: hidden; }
+.rp-bar span { display: block; height: 100%; border-radius: 4px; }
+.rp-pct { font: 800 1.15rem/1 var(--f-display); text-align: right; }
+.rp-foot { margin: 14px clamp(18px, 5vw, 48px) 0; padding: 14px 0 22px; border-top: 1px solid #DFE4E9; font-size: 0.8rem; color: #7D6B5C; }
+.nlh-bbs-report #nav .btn { white-space: nowrap; }
+@media (max-width: 520px) {
+  .nlh-bbs-report .brand { display: none; }
+  .nlh-bbs-report #nav { margin-right: 64px; }
+  .rp-meta { grid-template-columns: 1fr 1fr; }
+  .rp-track span { font-size: 0.58rem; padding: 0 3px; color: transparent; }
+  .rp-card li { grid-template-columns: minmax(0, 1fr) 3rem; }
+  .rp-bar { grid-column: 1 / -1; grid-row: 2; }
+}
+@media print {
+  .topbar { display: none !important; }
+  body { background: #FFFFFF; }
+  .rp-sheet { border: 0; box-shadow: none; max-width: none; }
+}
